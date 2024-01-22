@@ -12,7 +12,7 @@ import numpy as np
 from elements import Background, Document
 from PIL import Image
 from synthtiger import components, layers, templates
-
+from pythainlp import word_tokenize
 
 class SynthDoG(templates.Template):
     def __init__(self, config=None, split_ratio: List[float] = [0.8, 0.1, 0.1]):
@@ -51,21 +51,29 @@ class SynthDoG(templates.Template):
         size = (long_size, short_size) if landscape else (short_size, long_size)
 
         bg_layer = self.background.generate(size)
+        #TOFU from text_layers that from document.generate
         paper_layer, text_layers, texts = self.document.generate(size)
-
         document_group = layers.Group([*text_layers, paper_layer])
         document_space = np.clip(size - document_group.size, 0, None)
         document_group.left = np.random.randint(document_space[0] + 1)
         document_group.top = np.random.randint(document_space[1] + 1)
         roi = np.array(paper_layer.quad, dtype=int)
-
+        
         layer = layers.Group([*document_group.layers, bg_layer]).merge()
         self.effect.apply([layer])
 
         image = layer.output(bbox=[0, 0, *size])
-        label = " ".join(texts)
+
+        # Use pyThaiNLP for word tokenization
+        thai_words = [word_tokenize(sentence, engine='newmm') for sentence in texts]
+        # Flatten the list of lists
+        thai_words = [word for sublist in thai_words for word in sublist]
+        
+        label = "".join(thai_words)
         label = label.strip()
-        label = re.sub(r"\s+", " ", label)
+        # label = re.sub(r"\s+", " ", label)
+        
+
         quality = np.random.randint(self.quality[0], self.quality[1] + 1)
 
         data = {
@@ -86,7 +94,7 @@ class SynthDoG(templates.Template):
         label = data["label"]
         quality = data["quality"]
         roi = data["roi"]
-
+        
         # split
         split_idx = self.split_indexes[idx % len(self.split_indexes)]
         output_dirpath = os.path.join(root, self.splits[split_idx])
@@ -95,7 +103,8 @@ class SynthDoG(templates.Template):
         image_filename = f"image_{idx}.jpg"
         image_filepath = os.path.join(output_dirpath, image_filename)
         os.makedirs(os.path.dirname(image_filepath), exist_ok=True)
-        image = Image.fromarray(image[..., :3].astype(np.uint8))
+        
+        image = Image.fromarray(image[..., :3].astype(np.uint8)) 
         image.save(image_filepath, quality=quality)
 
         # save metadata (gt_json)
