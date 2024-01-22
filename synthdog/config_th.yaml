@@ -52,6 +52,7 @@ document:
             stack_full: 0.1
         textbox:
             fill: [0.5, 1]
+            tokenize_engine: newmm # deepcut for better performance but longer computation time
         textbox_color:
             prob: 0.2
             args:

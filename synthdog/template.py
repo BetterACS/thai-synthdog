@@ -12,7 +12,7 @@ import numpy as np
 from elements import Background, Document
 from PIL import Image
 from synthtiger import components, layers, templates
-from pythainlp import word_tokenize
+
 
 class SynthDoG(templates.Template):
     def __init__(self, config=None, split_ratio: List[float] = [0.8, 0.1, 0.1]):
@@ -42,6 +42,7 @@ class SynthDoG(templates.Template):
         self.splits = ["train", "validation", "test"]
         self.split_ratio = split_ratio
         self.split_indexes = np.random.choice(3, size=10000, p=split_ratio)
+        self.tokenize_engine = config.get("tokenize_engine", "newmm")
 
     def generate(self):
         landscape = np.random.rand() < self.landscape
@@ -51,8 +52,8 @@ class SynthDoG(templates.Template):
         size = (long_size, short_size) if landscape else (short_size, long_size)
 
         bg_layer = self.background.generate(size)
-        #TOFU from text_layers that from document.generate
         paper_layer, text_layers, texts = self.document.generate(size)
+
         document_group = layers.Group([*text_layers, paper_layer])
         document_space = np.clip(size - document_group.size, 0, None)
         document_group.left = np.random.randint(document_space[0] + 1)
@@ -65,14 +66,9 @@ class SynthDoG(templates.Template):
         image = layer.output(bbox=[0, 0, *size])
 
         # Use pyThaiNLP for word tokenization
-        thai_words = [word_tokenize(sentence, engine='newmm') for sentence in texts]
-        # Flatten the list of lists
-        thai_words = [word for sublist in thai_words for word in sublist]
-        
-        label = "".join(thai_words)
-        label = label.strip()
-        # label = re.sub(r"\s+", " ", label)
-        
+        # thai_words = [word_tokenize(sentence, engine=self.tokenize_engine) for sentence in texts]
+        # Convert from flattened list to string
+        label = "".join(texts).strip()
 
         quality = np.random.randint(self.quality[0], self.quality[1] + 1)
 
@@ -103,7 +99,6 @@ class SynthDoG(templates.Template):
         image_filename = f"image_{idx}.jpg"
         image_filepath = os.path.join(output_dirpath, image_filename)
         os.makedirs(os.path.dirname(image_filepath), exist_ok=True)
-        
         image = Image.fromarray(image[..., :3].astype(np.uint8)) 
         image.save(image_filepath, quality=quality)
 

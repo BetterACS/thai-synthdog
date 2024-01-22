@@ -10,6 +10,7 @@ from pythainlp.tokenize import word_tokenize
 class TextBox:
     def __init__(self, config):
         self.fill = config.get("fill", [1, 1])
+        self.tokenize_engine = config.get("tokenize_engine", "newmm")
 
     def generate(self, size, text, font):
         width, height = size
@@ -19,20 +20,21 @@ class TextBox:
         width = np.clip(width * fill, height, width)
         font = {**font, "size": int(height)}
         left, top = 0, 0
-        new_text = ""
-        counter = 0
+        
+        sentence = ""
+        character_counter = 0
         for char in text:
+            if character_counter > width:
+                break
             if char in "\r\n":
                 continue
-            if counter > width:
-                break
-            new_text += char
-            counter+=1
-        #print("new_text",new_text)
-        for word in word_tokenize(new_text, engine="newmm"):
+            sentence += char
+            character_counter += 1
+
+        for word in word_tokenize(sentence, engine=self.tokenize_engine):
             if word in "\r\n":
                 continue
-            #print("word",word)
+
             word_layer = layers.TextLayer(word, **font)
             word_scale = height / word_layer.height
             word_layer.bbox = [left, top, *(word_layer.size * word_scale)]
@@ -47,7 +49,7 @@ class TextBox:
         text = "".join(words).strip()
         if len(char_layers) == 0 or len(text) == 0:
             return None, None
-        #print("text and char_layers",text,char_layers)
+
         text_layer = layers.Group(char_layers).merge()
 
         return text_layer, text

@@ -97,7 +97,6 @@ class Content:
 
             for bbox, align in layout:
                 x, y, w, h = bbox
-                #TOFU from textbox.generate
                 text_layer, text = self.textbox.generate((w, h), self.reader, font)
                 self.reader.prev()
 

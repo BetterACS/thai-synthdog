@@ -7,7 +7,13 @@ SynthDoG is synthetic document generator for visual document understanding (VDU)
 ## Prerequisites
 
 - python>=3.6
-- [synthtiger](https://github.com/clovaai/synthtiger) (`pip install synthtiger`)
+<!-- - [synthtiger](https://github.com/clovaai/synthtiger) (`pip install synthtiger`) -->
+- forked synthtiger (`pip install -e .`)
+     ```bash
+     git clone https://github.com/BetterACS/synthtiger.git
+     cd synthtiger
+     pip install -e .
+     ```
 
 ## Usage
 
@@ -15,12 +21,12 @@ SynthDoG is synthetic document generator for visual document understanding (VDU)
 # Set environment variable (for macOS)
 $ export OBJC_DISABLE_INITIALIZE_FORK_SAFETY=YES
 
-synthtiger -o ./outputs/SynthDoG_en -c 50 -w 4 -v template.py SynthDoG config_en.yaml
+synthtiger -o ./outputs/SynthDoG_th -c 50 -w 4 -v template.py SynthDoG config_th.yaml
 
-{'config': 'config_en.yaml',
+{'config': 'config_th.yaml',
  'count': 50,
  'name': 'SynthDoG',
- 'output': './outputs/SynthDoG_en',
+ 'output': './outputs/SynthDoG_th',
  'script': 'template.py',
  'verbose': True,
  'worker': 4}
@@ -46,18 +52,3 @@ Some important arguments:
 - `-w` : number of workers.
 - `-s` : random seed.
 - `-v` : print error messages.
-
-To generate ECJK samples:
-```bash
-# english
-synthtiger -o {dataset_path} -c {num_of_data} -w {num_of_workers} -v template.py SynthDoG config_en.yaml
-
-# chinese
-synthtiger -o {dataset_path} -c {num_of_data} -w {num_of_workers} -v template.py SynthDoG config_zh.yaml
-
-# japanese
-synthtiger -o {dataset_path} -c {num_of_data} -w {num_of_workers} -v template.py SynthDoG config_ja.yaml
-
-# korean
-synthtiger -o {dataset_path} -c {num_of_data} -w {num_of_workers} -v template.py SynthDoG config_ko.yaml
-```
